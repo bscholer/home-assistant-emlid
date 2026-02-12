@@ -14,3 +14,4 @@ __pycache__/
 
 # Test files from development
 websocket_sample.txt
+*.har
