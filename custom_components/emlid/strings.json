@@ -1,0 +1,33 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Configure Emlid GNSS Device",
+        "description": "Enter your Emlid device information",
+        "data": {
+          "host": "Device IP or hostname",
+          "update_rate": "Update rate (Hz)"
+        },
+        "data_description": {
+          "host": "IP address or hostname (e.g., 192.168.1.21 or reach.local)",
+          "update_rate": "WebSocket update frequency: 1Hz recommended, 0.2Hz for low database usage, up to 10Hz for advanced use"
+        }
+      },
+      "reconfigure": {
+        "title": "Reconfigure Emlid GNSS Device",
+        "description": "Update device connection settings",
+        "data": {
+          "host": "Device IP or hostname",
+          "update_rate": "Update rate (Hz)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect to device. Check the IP address/hostname and ensure the device is powered on and accessible on the network.",
+      "unknown": "Unexpected error occurred. Check the logs for details."
+    },
+    "abort": {
+      "already_configured": "This device is already configured"
+    }
+  }
+}
