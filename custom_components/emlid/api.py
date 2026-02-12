@@ -133,6 +133,7 @@ class EmlidWebSocketClient:
                     self.url,
                     socketio_path=SOCKETIO_PATH,
                     transports=["polling", "websocket"],
+                    namespaces=["/"],
                 )
                 _LOGGER.debug("WebSocket client initialized for %s", self.host)
             except Exception as err:
