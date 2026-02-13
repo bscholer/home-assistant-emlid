@@ -267,6 +267,17 @@ SENSOR_DESCRIPTIONS: tuple[EmlidSensorEntityDescription, ...] = (
         .get("app_version"),
         available_fn=lambda data: "device_info" in data,
     ),
+    EmlidSensorEntityDescription(
+        key="satellite_observations",
+        translation_key="satellite_observations",
+        name="Satellite Observations",
+        icon="mdi:satellite-variant",
+        entity_registry_enabled_default=False,
+        value_fn=lambda data: len(
+            data.get("satellite_observations", {}).get("rover_satellites", [])
+        ),
+        available_fn=lambda data: "satellite_observations" in data,
+    ),
 )
 
 
@@ -329,3 +340,18 @@ class EmlidSensor(CoordinatorEntity[EmlidDataUpdateCoordinator], SensorEntity):
             self.coordinator.last_update_success
             and self.entity_description.available_fn(self.coordinator.data)
         )
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any] | None:
+        """Return extra state attributes."""
+        # Add detailed satellite observation data as attributes for the satellite_observations sensor
+        if self.entity_description.key == "satellite_observations":
+            obs_data = self.coordinator.data.get("satellite_observations", {})
+            return {
+                "satellites_count": obs_data.get("satellites_count", {}),
+                "rover_satellites": obs_data.get("rover_satellites", []),
+                "base_satellites": obs_data.get("base_satellites", []),
+                "by_constellation": obs_data.get("by_constellation", {}),
+                "timestamp": obs_data.get("timestamp"),
+            }
+        return None

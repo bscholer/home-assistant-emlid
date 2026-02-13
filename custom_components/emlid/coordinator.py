@@ -63,6 +63,7 @@ class EmlidCoordinatorData(TypedDict, total=False):
     power_battery_present: bool
     correction_input_state: str
     logging_active: bool
+    satellite_observations: dict[str, Any]
 
     # From REST API (periodic)
     device_info: dict[str, Any]
@@ -109,6 +110,7 @@ class EmlidDataUpdateCoordinator(DataUpdateCoordinator[EmlidCoordinatorData]):
         self.ws_client.on("power_supply_status", self._handle_power_supply)
         self.ws_client.on("stream_status", self._handle_stream_status)
         self.ws_client.on("active_logs", self._handle_active_logs)
+        self.ws_client.on("observations", self._handle_observations)
 
     def _should_update(self, key: str) -> bool:
         """Check if enough time has passed for throttled update."""
@@ -211,6 +213,38 @@ class EmlidDataUpdateCoordinator(DataUpdateCoordinator[EmlidCoordinatorData]):
                     break
 
         self._ws_data["logging_active"] = is_logging
+        self.async_set_updated_data(self._merge_data())
+
+    def _handle_observations(self, data: dict[str, Any]) -> None:
+        """Handle observations event from WebSocket."""
+        # Process and structure satellite observation data
+        observations = {
+            "satellites_count": data.get("satellites_count", {}),
+            "rover_satellites": data.get("satellites", {}).get("rover", []),
+            "base_satellites": data.get("satellites", {}).get("base", []),
+            "timestamp": datetime.now().isoformat(),
+        }
+
+        # Group satellites by constellation
+        constellations = {"GPS": [], "GLONASS": [], "Galileo": [], "BeiDou": [], "QZSS": [], "SBAS": []}
+        for sat in observations["rover_satellites"]:
+            sat_id = sat.get("satellite_index", "")
+            if sat_id.startswith("G"):
+                constellations["GPS"].append(sat)
+            elif sat_id.startswith("R"):
+                constellations["GLONASS"].append(sat)
+            elif sat_id.startswith("E"):
+                constellations["Galileo"].append(sat)
+            elif sat_id.startswith("C"):
+                constellations["BeiDou"].append(sat)
+            elif sat_id.startswith("J"):
+                constellations["QZSS"].append(sat)
+            elif sat_id.startswith("S"):
+                constellations["SBAS"].append(sat)
+
+        observations["by_constellation"] = constellations
+
+        self._ws_data["satellite_observations"] = observations
         self.async_set_updated_data(self._merge_data())
 
     def _merge_data(self) -> EmlidCoordinatorData:
