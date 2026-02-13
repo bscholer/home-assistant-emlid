@@ -248,7 +248,19 @@ entities:
       width: 1
       color: '#2196F3'
     marker:
-      size: 12
+      size: >
+        $fn ({ys,meta}) => {
+          const sizes = [];
+          meta.by_constellation.GPS.forEach(sat => {
+            const trail = meta.satellite_trails[sat.satellite_index] || [];
+            if (trail.length > 0) {
+              // Small markers for trail, larger for current position
+              sizes.push(...trail.map((pos, i) => i === trail.length - 1 ? 10 : 1));
+              sizes.push(null);
+            }
+          });
+          return sizes;
+        }
       color: '#2196F3'
     type: scatterpolar
     textposition: top center
@@ -309,7 +321,18 @@ entities:
       width: 1
       color: '#4CAF50'
     marker:
-      size: 12
+      size: >
+        $fn ({ys,meta}) => {
+          const sizes = [];
+          meta.by_constellation.Galileo.forEach(sat => {
+            const trail = meta.satellite_trails[sat.satellite_index] || [];
+            if (trail.length > 0) {
+              sizes.push(...trail.map((pos, i) => i === trail.length - 1 ? 10 : 1));
+              sizes.push(null);
+            }
+          });
+          return sizes;
+        }
       color: '#4CAF50'
     type: scatterpolar
     textposition: top center
@@ -369,7 +392,18 @@ entities:
       width: 1
       color: '#FF9800'
     marker:
-      size: 12
+      size: >
+        $fn ({ys,meta}) => {
+          const sizes = [];
+          meta.by_constellation.GLONASS.forEach(sat => {
+            const trail = meta.satellite_trails[sat.satellite_index] || [];
+            if (trail.length > 0) {
+              sizes.push(...trail.map((pos, i) => i === trail.length - 1 ? 10 : 1));
+              sizes.push(null);
+            }
+          });
+          return sizes;
+        }
       color: '#FF9800'
     type: scatterpolar
     textposition: top center
@@ -429,7 +463,18 @@ entities:
       width: 1
       color: '#F44336'
     marker:
-      size: 12
+      size: >
+        $fn ({ys,meta}) => {
+          const sizes = [];
+          meta.by_constellation.BeiDou.forEach(sat => {
+            const trail = meta.satellite_trails[sat.satellite_index] || [];
+            if (trail.length > 0) {
+              sizes.push(...trail.map((pos, i) => i === trail.length - 1 ? 10 : 1));
+              sizes.push(null);
+            }
+          });
+          return sizes;
+        }
       color: '#F44336'
     type: scatterpolar
     textposition: top center
@@ -489,7 +534,18 @@ entities:
       width: 1
       color: '#9C27B0'
     marker:
-      size: 12
+      size: >
+        $fn ({ys,meta}) => {
+          const sizes = [];
+          meta.by_constellation.QZSS.forEach(sat => {
+            const trail = meta.satellite_trails[sat.satellite_index] || [];
+            if (trail.length > 0) {
+              sizes.push(...trail.map((pos, i) => i === trail.length - 1 ? 10 : 1));
+              sizes.push(null);
+            }
+          });
+          return sizes;
+        }
       color: '#9C27B0'
     type: scatterpolar
     textposition: top center
@@ -549,7 +605,18 @@ entities:
       width: 1
       color: '#795548'
     marker:
-      size: 12
+      size: >
+        $fn ({ys,meta}) => {
+          const sizes = [];
+          meta.by_constellation.SBAS.forEach(sat => {
+            const trail = meta.satellite_trails[sat.satellite_index] || [];
+            if (trail.length > 0) {
+              sizes.push(...trail.map((pos, i) => i === trail.length - 1 ? 10 : 1));
+              sizes.push(null);
+            }
+          });
+          return sizes;
+        }
       color: '#795548'
     type: scatterpolar
     textposition: top center
