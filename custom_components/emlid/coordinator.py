@@ -116,13 +116,19 @@ class EmlidDataUpdateCoordinator(DataUpdateCoordinator[EmlidCoordinatorData]):
         self.ws_client.on("active_logs", self._handle_active_logs)
         self.ws_client.on("observations", self._handle_observations)
 
-    def _should_update(self, key: str) -> bool:
-        """Check if enough time has passed for throttled update."""
+    def _should_update(self, key: str, interval: timedelta | None = None) -> bool:
+        """Check if enough time has passed for throttled update.
+
+        Args:
+            key: The throttle key to check
+            interval: Optional custom interval, defaults to self._throttle_interval
+        """
         now = datetime.now()
+        check_interval = interval or self._throttle_interval
         if key not in self._last_update:
             self._last_update[key] = now
             return True
-        if now - self._last_update[key] >= self._throttle_interval:
+        if now - self._last_update[key] >= check_interval:
             self._last_update[key] = now
             return True
         return False
@@ -249,30 +255,32 @@ class EmlidDataUpdateCoordinator(DataUpdateCoordinator[EmlidCoordinatorData]):
         observations["by_constellation"] = constellations
 
         # Update satellite trails (position history for sky plot)
-        for sat in observations["rover_satellites"]:
-            sat_id = sat.get("satellite_index", "")
-            if sat_id:
-                # Initialize trail if needed
-                if sat_id not in self._satellite_trails:
-                    self._satellite_trails[sat_id] = []
+        # Only update trails every 10 seconds to show meaningful movement
+        if self._should_update("satellite_trails", timedelta(seconds=10)):
+            for sat in observations["rover_satellites"]:
+                sat_id = sat.get("satellite_index", "")
+                if sat_id:
+                    # Initialize trail if needed
+                    if sat_id not in self._satellite_trails:
+                        self._satellite_trails[sat_id] = []
 
-                # Add current position to trail
-                self._satellite_trails[sat_id].append({
-                    "azimuth": sat.get("azimuth", 0),
-                    "elevation": sat.get("elevation", 0),
-                    "snr": sat.get("signal_to_noise_ratio", 0),
-                    "timestamp": datetime.now().isoformat(),
-                })
+                    # Add current position to trail
+                    self._satellite_trails[sat_id].append({
+                        "azimuth": sat.get("azimuth", 0),
+                        "elevation": sat.get("elevation", 0),
+                        "snr": sat.get("signal_to_noise_ratio", 0),
+                        "timestamp": datetime.now().isoformat(),
+                    })
 
-                # Keep only last N positions
-                if len(self._satellite_trails[sat_id]) > self._max_trail_length:
-                    self._satellite_trails[sat_id] = self._satellite_trails[sat_id][-self._max_trail_length:]
+                    # Keep only last N positions
+                    if len(self._satellite_trails[sat_id]) > self._max_trail_length:
+                        self._satellite_trails[sat_id] = self._satellite_trails[sat_id][-self._max_trail_length:]
 
-        # Clean up trails for satellites no longer visible
-        current_sat_ids = {sat.get("satellite_index") for sat in observations["rover_satellites"]}
-        trails_to_remove = [sat_id for sat_id in self._satellite_trails if sat_id not in current_sat_ids]
-        for sat_id in trails_to_remove:
-            del self._satellite_trails[sat_id]
+            # Clean up trails for satellites no longer visible
+            current_sat_ids = {sat.get("satellite_index") for sat in observations["rover_satellites"]}
+            trails_to_remove = [sat_id for sat_id in self._satellite_trails if sat_id not in current_sat_ids]
+            for sat_id in trails_to_remove:
+                del self._satellite_trails[sat_id]
 
         # Add trails to observations
         observations["satellite_trails"] = self._satellite_trails
