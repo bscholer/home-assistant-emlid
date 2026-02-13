@@ -17,6 +17,12 @@ This custom integration allows you to monitor your Emlid GNSS receivers (Reach R
   - Start/stop data logging
   - Enable/disable GNSS systems (GPS, GLONASS, Galileo, BeiDou, QZSS)
   - Adjust antenna height, update rate, and positioning parameters
+- **Satellite Tracking**: Detailed observation data for visualization
+  - Individual satellite signal strength (SNR)
+  - Elevation and azimuth for sky plots
+  - Grouped by constellation (GPS, GLONASS, Galileo, BeiDou, QZSS, SBAS)
+  - Real-time tracking at 1Hz
+  - Perfect for ApexCharts bar charts, sky plots, and timelapses
 
 ## Supported Devices
 
@@ -92,6 +98,12 @@ The integration is configured through the UI:
 #### Device Info
 - `sensor.emlid_role` - Device role (base/rover)
 - `sensor.emlid_firmware` - Firmware version
+
+#### Satellite Tracking
+- `sensor.emlid_satellite_observations` - Detailed satellite data (disabled by default)
+  - Attributes include: SNR, elevation, azimuth for each satellite
+  - Grouped by constellation for easy visualization
+  - See [Satellite Visualization Guide](docs/SATELLITE_VISUALIZATION.md) for chart examples
 - `sensor.emlid_model` - Device model
 
 ### Device Tracker

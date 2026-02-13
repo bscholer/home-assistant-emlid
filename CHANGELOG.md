@@ -22,3 +22,8 @@ All notable changes to this project will be documented in this file.
   - Number: Antenna height, update rate, elevation mask, SNR mask, acceleration limits
   - Select: Positioning mode, GPS AR mode
 - Read-modify-write pattern to safely update settings without overwriting other fields
+- **Satellite observation tracking** for detailed visualization:
+  - Individual satellite signal strength (SNR), elevation, and azimuth
+  - Data grouped by constellation (GPS, GLONASS, Galileo, BeiDou, QZSS, SBAS)
+  - Perfect for creating sky plots, bar charts, and timelapses
+  - Comprehensive visualization guide with ApexCharts examples
