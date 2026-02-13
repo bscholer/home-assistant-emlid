@@ -26,8 +26,9 @@ This custom integration allows you to monitor your Emlid GNSS receivers (Reach R
 
 ## Supported Devices
 
-- Emlid Reach RS4
-- Potentially compatible with Reach RS2/RS3 (untested)
+- Emlid Reach RS4 ✅
+- Emlid Reach RS3 ✅
+- Potentially compatible with Reach RS2 and other Emlid GNSS receivers
 
 ## Installation
 

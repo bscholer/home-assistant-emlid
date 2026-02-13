@@ -49,61 +49,86 @@ timestamp: "2026-02-13T15:30:45.123456"
 
 ## Visualization Examples
 
-### 1. Bar Chart - Signal Strength by Constellation
+### 1. Real-Time Satellite Signal Strength
 
-Show satellite signal strength as a bar chart:
+Show current satellite signal strength (real-time snapshot, not historical):
+
+```yaml
+type: markdown
+content: |
+  ## Satellite Signal Strength
+
+  {% set gps = state_attr('sensor.emlid_satellite_observations', 'by_constellation')['GPS'] %}
+  {% set galileo = state_attr('sensor.emlid_satellite_observations', 'by_constellation')['Galileo'] %}
+  {% set glonass = state_attr('sensor.emlid_satellite_observations', 'by_constellation')['GLONASS'] %}
+  {% set beidou = state_attr('sensor.emlid_satellite_observations', 'by_constellation')['BeiDou'] %}
+
+  ### 🇺🇸 GPS
+  {% for sat in gps | sort(attribute='signal_to_noise_ratio', reverse=true) %}
+  **{{ sat.satellite_index }}**: {{ '█' * (sat.signal_to_noise_ratio // 5) }} {{ sat.signal_to_noise_ratio }} dB
+  {% endfor %}
+
+  ### 🇪🇺 Galileo
+  {% for sat in galileo | sort(attribute='signal_to_noise_ratio', reverse=true) %}
+  **{{ sat.satellite_index }}**: {{ '█' * (sat.signal_to_noise_ratio // 5) }} {{ sat.signal_to_noise_ratio }} dB
+  {% endfor %}
+
+  ### 🇷🇺 GLONASS
+  {% for sat in glonass | sort(attribute='signal_to_noise_ratio', reverse=true) %}
+  **{{ sat.satellite_index }}**: {{ '█' * (sat.signal_to_noise_ratio // 5) }} {{ sat.signal_to_noise_ratio }} dB
+  {% endfor %}
+
+  ### 🇨🇳 BeiDou
+  {% for sat in beidou | sort(attribute='signal_to_noise_ratio', reverse=true) %}
+  **{{ sat.satellite_index }}**: {{ '█' * (sat.signal_to_noise_ratio // 5) }} {{ sat.signal_to_noise_ratio }} dB
+  {% endfor %}
+```
+
+### 1a. Historical Satellite Count by Constellation
+
+Track satellite counts over time (uses actual history):
 
 ```yaml
 type: custom:apexcharts-card
 header:
-  title: Satellite Signal Strength
+  title: Satellites by Constellation (Historical)
   show: true
-update_interval: 1s
-experimental:
-  color_threshold: true
+graph_span: 1h
+update_interval: 5s
 all_series_config:
-  type: column
+  type: line
+  stroke_width: 2
+  group_by:
+    func: last
+    duration: 5s
 series:
   - entity: sensor.emlid_satellite_observations
-    name: GPS
+    name: GPS Count
     color: '#2196F3'
-    data_generator: |
-      return entity.attributes.by_constellation.GPS.map((sat) => {
-        return [new Date().getTime(), sat.signal_to_noise_ratio];
-      });
+    attribute: by_constellation.GPS
+    transform: return x.length;
   - entity: sensor.emlid_satellite_observations
-    name: Galileo
+    name: Galileo Count
     color: '#4CAF50'
-    data_generator: |
-      return entity.attributes.by_constellation.Galileo.map((sat) => {
-        return [new Date().getTime(), sat.signal_to_noise_ratio];
-      });
+    attribute: by_constellation.Galileo
+    transform: return x.length;
   - entity: sensor.emlid_satellite_observations
-    name: GLONASS
+    name: GLONASS Count
     color: '#FF9800'
-    data_generator: |
-      return entity.attributes.by_constellation.GLONASS.map((sat) => {
-        return [new Date().getTime(), sat.signal_to_noise_ratio];
-      });
+    attribute: by_constellation.GLONASS
+    transform: return x.length;
   - entity: sensor.emlid_satellite_observations
-    name: BeiDou
+    name: BeiDou Count
     color: '#F44336'
-    data_generator: |
-      return entity.attributes.by_constellation.BeiDou.map((sat) => {
-        return [new Date().getTime(), sat.signal_to_noise_ratio];
-      });
+    attribute: by_constellation.BeiDou
+    transform: return x.length;
 apex_config:
   chart:
-    height: 300
-    stacked: false
+    height: 250
   yaxis:
     title:
-      text: "Signal Strength (dB-Hz)"
+      text: "Number of Satellites"
     min: 0
-    max: 60
-  xaxis:
-    labels:
-      show: false
   legend:
     show: true
 ```
@@ -196,7 +221,7 @@ For a proper polar sky plot showing satellite positions, you have a few options:
 Install **plotly-graph-card** via HACS, then use (**must use YAML mode**, visual editor not supported):
 
 ```yaml
-type: custom:plotly-graph-card
+type: custom:plotly-graph
 title: Satellite Sky Plot
 hours_to_show: 0
 refresh_interval: 1
