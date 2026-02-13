@@ -255,8 +255,9 @@ class EmlidDataUpdateCoordinator(DataUpdateCoordinator[EmlidCoordinatorData]):
         observations["by_constellation"] = constellations
 
         # Update satellite trails (position history for sky plot)
-        # Only update trails every 10 seconds to show meaningful movement
-        if self._should_update("satellite_trails", timedelta(seconds=10)):
+        # Only update trails every 60 seconds to show meaningful movement
+        # 20 points × 60 seconds = 20 minutes of satellite movement history
+        if self._should_update("satellite_trails", timedelta(seconds=60)):
             for sat in observations["rover_satellites"]:
                 sat_id = sat.get("satellite_index", "")
                 if sat_id:
