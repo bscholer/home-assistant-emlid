@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.0.0] - 2026-02-12
+## [1.0.0] - 2026-02-13
 
 ### Added
 - Initial release
@@ -17,3 +17,8 @@ All notable changes to this project will be documented in this file.
 - WiFi connection status
 - Device tracker for map integration
 - Support for both Base and Rover modes
+- **Control entities** for device configuration:
+  - Switch: Night mode, data logging, GNSS systems (GPS/GLONASS/Galileo/BeiDou/QZSS)
+  - Number: Antenna height, update rate, elevation mask, SNR mask, acceleration limits
+  - Select: Positioning mode, GPS AR mode
+- Read-modify-write pattern to safely update settings without overwriting other fields

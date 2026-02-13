@@ -12,6 +12,11 @@ This custom integration allows you to monitor your Emlid GNSS receivers (Reach R
 - **Communication Status**: LoRa, WiFi, and Bluetooth monitoring
 - **Device Tracker**: Show device location on Home Assistant map
 - **Configurable Update Rate**: Control WebSocket data frequency (default 1Hz)
+- **Device Control**: Change settings directly from Home Assistant
+  - Toggle night mode
+  - Start/stop data logging
+  - Enable/disable GNSS systems (GPS, GLONASS, Galileo, BeiDou, QZSS)
+  - Adjust antenna height, update rate, and positioning parameters
 
 ## Supported Devices
 
@@ -91,6 +96,27 @@ The integration is configured through the UI:
 
 ### Device Tracker
 - `device_tracker.emlid_location` - GPS location for map display
+
+### Switches
+- `switch.emlid_night_mode` - Toggle night mode UI
+- `switch.emlid_data_logging` - Start/stop data logging
+- `switch.emlid_gnss_gps` - Enable/disable GPS constellation (disabled by default)
+- `switch.emlid_gnss_glonass` - Enable/disable GLONASS (disabled by default)
+- `switch.emlid_gnss_galileo` - Enable/disable Galileo (disabled by default)
+- `switch.emlid_gnss_beidou` - Enable/disable BeiDou (disabled by default)
+- `switch.emlid_gnss_qzss` - Enable/disable QZSS (disabled by default)
+
+### Numbers
+- `number.emlid_antenna_height` - Antenna height above mark (meters)
+- `number.emlid_update_rate` - GNSS update rate (1-20 Hz) (disabled by default)
+- `number.emlid_elevation_mask` - Minimum satellite elevation (0-90°) (disabled by default)
+- `number.emlid_snr_mask` - Minimum signal-to-noise ratio (0-55 dB-Hz) (disabled by default)
+- `number.emlid_max_horizontal_acceleration` - Max horizontal acceleration (m/s²) (disabled by default)
+- `number.emlid_max_vertical_acceleration` - Max vertical acceleration (m/s²) (disabled by default)
+
+### Selects
+- `select.emlid_positioning_mode` - Positioning mode (kinematic/static/stop-and-go) (disabled by default)
+- `select.emlid_gps_ar_mode` - GPS ambiguity resolution (fix-and-hold/continuous) (disabled by default)
 
 ## Usage Examples
 
