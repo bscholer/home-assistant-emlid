@@ -193,7 +193,7 @@ For a proper polar sky plot showing satellite positions, you have a few options:
 
 #### Option 1: Plotly Graph Card (Best for Sky Plots)
 
-Install **plotly-graph-card** via HACS, then use:
+Install **plotly-graph-card** via HACS, then use (**must use YAML mode**, visual editor not supported):
 
 ```yaml
 type: custom:plotly-graph-card
@@ -201,23 +201,28 @@ title: Satellite Sky Plot
 hours_to_show: 0
 refresh_interval: 1
 layout:
-  height: 400
+  height: 450
+  showlegend: true
   polar:
     radialaxis:
       range: [0, 90]
       angle: 90
       direction: clockwise
+      tickvals: [0, 30, 60, 90]
+      ticktext: ['90°', '60°', '30°', '0°']
     angularaxis:
       direction: clockwise
       rotation: 90
 entities:
   - entity: sensor.emlid_satellite_observations
     name: GPS
-    mode: markers
+    mode: markers+text
     marker:
-      size: 10
+      size: 12
       color: '#2196F3'
     type: scatterpolar
+    textposition: top center
+    hovertemplate: '<b>%{text}</b><br>SNR: %{customdata} dB<extra></extra>'
     theta: >
       $fn ({ys,meta}) =>
         meta.by_constellation.GPS.map(sat => sat.azimuth)
@@ -226,14 +231,19 @@ entities:
         meta.by_constellation.GPS.map(sat => 90 - sat.elevation)
     text: >
       $fn ({ys,meta}) =>
-        meta.by_constellation.GPS.map(sat => sat.satellite_index + ' (' + sat.signal_to_noise_ratio + ' dB)')
+        meta.by_constellation.GPS.map(sat => sat.satellite_index)
+    customdata: >
+      $fn ({ys,meta}) =>
+        meta.by_constellation.GPS.map(sat => sat.signal_to_noise_ratio)
   - entity: sensor.emlid_satellite_observations
     name: Galileo
-    mode: markers
+    mode: markers+text
     marker:
-      size: 10
+      size: 12
       color: '#4CAF50'
     type: scatterpolar
+    textposition: top center
+    hovertemplate: '<b>%{text}</b><br>SNR: %{customdata} dB<extra></extra>'
     theta: >
       $fn ({ys,meta}) =>
         meta.by_constellation.Galileo.map(sat => sat.azimuth)
@@ -242,8 +252,97 @@ entities:
         meta.by_constellation.Galileo.map(sat => 90 - sat.elevation)
     text: >
       $fn ({ys,meta}) =>
-        meta.by_constellation.Galileo.map(sat => sat.satellite_index + ' (' + sat.signal_to_noise_ratio + ' dB)')
+        meta.by_constellation.Galileo.map(sat => sat.satellite_index)
+    customdata: >
+      $fn ({ys,meta}) =>
+        meta.by_constellation.Galileo.map(sat => sat.signal_to_noise_ratio)
+  - entity: sensor.emlid_satellite_observations
+    name: GLONASS
+    mode: markers+text
+    marker:
+      size: 12
+      color: '#FF9800'
+    type: scatterpolar
+    textposition: top center
+    hovertemplate: '<b>%{text}</b><br>SNR: %{customdata} dB<extra></extra>'
+    theta: >
+      $fn ({ys,meta}) =>
+        meta.by_constellation.GLONASS.map(sat => sat.azimuth)
+    r: >
+      $fn ({ys,meta}) =>
+        meta.by_constellation.GLONASS.map(sat => 90 - sat.elevation)
+    text: >
+      $fn ({ys,meta}) =>
+        meta.by_constellation.GLONASS.map(sat => sat.satellite_index)
+    customdata: >
+      $fn ({ys,meta}) =>
+        meta.by_constellation.GLONASS.map(sat => sat.signal_to_noise_ratio)
+  - entity: sensor.emlid_satellite_observations
+    name: BeiDou
+    mode: markers+text
+    marker:
+      size: 12
+      color: '#F44336'
+    type: scatterpolar
+    textposition: top center
+    hovertemplate: '<b>%{text}</b><br>SNR: %{customdata} dB<extra></extra>'
+    theta: >
+      $fn ({ys,meta}) =>
+        meta.by_constellation.BeiDou.map(sat => sat.azimuth)
+    r: >
+      $fn ({ys,meta}) =>
+        meta.by_constellation.BeiDou.map(sat => 90 - sat.elevation)
+    text: >
+      $fn ({ys,meta}) =>
+        meta.by_constellation.BeiDou.map(sat => sat.satellite_index)
+    customdata: >
+      $fn ({ys,meta}) =>
+        meta.by_constellation.BeiDou.map(sat => sat.signal_to_noise_ratio)
+  - entity: sensor.emlid_satellite_observations
+    name: QZSS
+    mode: markers+text
+    marker:
+      size: 12
+      color: '#9C27B0'
+    type: scatterpolar
+    textposition: top center
+    hovertemplate: '<b>%{text}</b><br>SNR: %{customdata} dB<extra></extra>'
+    theta: >
+      $fn ({ys,meta}) =>
+        meta.by_constellation.QZSS.map(sat => sat.azimuth)
+    r: >
+      $fn ({ys,meta}) =>
+        meta.by_constellation.QZSS.map(sat => 90 - sat.elevation)
+    text: >
+      $fn ({ys,meta}) =>
+        meta.by_constellation.QZSS.map(sat => sat.satellite_index)
+    customdata: >
+      $fn ({ys,meta}) =>
+        meta.by_constellation.QZSS.map(sat => sat.signal_to_noise_ratio)
+  - entity: sensor.emlid_satellite_observations
+    name: SBAS
+    mode: markers+text
+    marker:
+      size: 12
+      color: '#795548'
+    type: scatterpolar
+    textposition: top center
+    hovertemplate: '<b>%{text}</b><br>SNR: %{customdata} dB<extra></extra>'
+    theta: >
+      $fn ({ys,meta}) =>
+        meta.by_constellation.SBAS.map(sat => sat.azimuth)
+    r: >
+      $fn ({ys,meta}) =>
+        meta.by_constellation.SBAS.map(sat => 90 - sat.elevation)
+    text: >
+      $fn ({ys,meta}) =>
+        meta.by_constellation.SBAS.map(sat => sat.satellite_index)
+    customdata: >
+      $fn ({ys,meta}) =>
+        meta.by_constellation.SBAS.map(sat => sat.signal_to_noise_ratio)
 ```
+
+**Note:** The visual editor warnings are expected - Plotly uses advanced features that require YAML mode. Just ignore them!
 
 #### Option 2: Simple Visual Grid (No Custom Cards)
 
