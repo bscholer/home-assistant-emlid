@@ -49,49 +49,61 @@ timestamp: "2026-02-13T15:30:45.123456"
 
 ## Visualization Examples
 
-### 1. Bar Chart - Signal Strength
+### 1. Bar Chart - Signal Strength by Constellation
 
-Use ApexCharts card to show satellite signal strength:
+Show satellite signal strength as a bar chart:
 
 ```yaml
 type: custom:apexcharts-card
 header:
   title: Satellite Signal Strength
   show: true
-graph_span: 1min
 update_interval: 1s
+experimental:
+  color_threshold: true
+all_series_config:
+  type: column
 series:
   - entity: sensor.emlid_satellite_observations
     name: GPS
-    type: column
+    color: '#2196F3'
     data_generator: |
       return entity.attributes.by_constellation.GPS.map((sat) => {
-        return [sat.satellite_index, sat.signal_to_noise_ratio];
+        return [new Date().getTime(), sat.signal_to_noise_ratio];
       });
   - entity: sensor.emlid_satellite_observations
     name: Galileo
-    type: column
+    color: '#4CAF50'
     data_generator: |
       return entity.attributes.by_constellation.Galileo.map((sat) => {
-        return [sat.satellite_index, sat.signal_to_noise_ratio];
+        return [new Date().getTime(), sat.signal_to_noise_ratio];
       });
   - entity: sensor.emlid_satellite_observations
     name: GLONASS
-    type: column
+    color: '#FF9800'
     data_generator: |
       return entity.attributes.by_constellation.GLONASS.map((sat) => {
-        return [sat.satellite_index, sat.signal_to_noise_ratio];
+        return [new Date().getTime(), sat.signal_to_noise_ratio];
+      });
+  - entity: sensor.emlid_satellite_observations
+    name: BeiDou
+    color: '#F44336'
+    data_generator: |
+      return entity.attributes.by_constellation.BeiDou.map((sat) => {
+        return [new Date().getTime(), sat.signal_to_noise_ratio];
       });
 apex_config:
   chart:
     height: 300
-  xaxis:
-    type: category
+    stacked: false
   yaxis:
     title:
       text: "Signal Strength (dB-Hz)"
     min: 0
     max: 60
+  xaxis:
+    labels:
+      show: false
   legend:
     show: true
 ```
@@ -106,14 +118,16 @@ header:
   title: Satellites Over Time
   show: true
 graph_span: 1h
+all_series_config:
+  type: line
+  stroke_width: 2
 series:
   - entity: sensor.emlid_satellites_rover
     name: Total Tracked
-    stroke_width: 2
+    color: '#2196F3'
   - entity: sensor.emlid_satellites_valid
     name: Used in Solution
-    stroke_width: 2
-    color: green
+    color: '#4CAF50'
 apex_config:
   chart:
     height: 200
@@ -125,83 +139,84 @@ apex_config:
     show: true
 ```
 
-### 3. Sky Plot (Polar Chart)
+### 3. Simple Satellite List by Constellation
 
-Create a sky plot showing satellite positions:
+Show satellite counts by constellation as an area chart:
 
 ```yaml
 type: custom:apexcharts-card
 header:
-  title: Satellite Sky Plot
+  title: Satellites by Constellation
   show: true
 update_interval: 1s
+graph_span: 5min
+all_series_config:
+  type: area
+  stroke_width: 2
+  opacity: 0.3
 series:
   - entity: sensor.emlid_satellite_observations
     name: GPS
-    type: scatter
+    color: '#2196F3'
     data_generator: |
-      return entity.attributes.by_constellation.GPS.map((sat) => {
-        const r = 90 - sat.elevation; // Convert elevation to radius
-        const theta = sat.azimuth * (Math.PI / 180); // Convert to radians
-        return {
-          x: r * Math.sin(theta),
-          y: r * Math.cos(theta),
-          marker: {
-            size: sat.signal_to_noise_ratio / 2,
-          },
-          label: sat.satellite_index,
-        };
-      });
+      return [[new Date().getTime(), entity.attributes.by_constellation.GPS.length]];
   - entity: sensor.emlid_satellite_observations
     name: Galileo
-    type: scatter
+    color: '#4CAF50'
     data_generator: |
-      return entity.attributes.by_constellation.Galileo.map((sat) => {
-        const r = 90 - sat.elevation;
-        const theta = sat.azimuth * (Math.PI / 180);
-        return {
-          x: r * Math.sin(theta),
-          y: r * Math.cos(theta),
-          marker: {
-            size: sat.signal_to_noise_ratio / 2,
-          },
-          label: sat.satellite_index,
-        };
-      });
+      return [[new Date().getTime(), entity.attributes.by_constellation.Galileo.length]];
+  - entity: sensor.emlid_satellite_observations
+    name: GLONASS
+    color: '#FF9800'
+    data_generator: |
+      return [[new Date().getTime(), entity.attributes.by_constellation.GLONASS.length]];
+  - entity: sensor.emlid_satellite_observations
+    name: BeiDou
+    color: '#F44336'
+    data_generator: |
+      return [[new Date().getTime(), entity.attributes.by_constellation.BeiDou.length]];
 apex_config:
   chart:
-    height: 400
-  xaxis:
-    min: -100
-    max: 100
-    tickAmount: 8
-    labels:
-      formatter: |
-        EVAL:function(val) {
-          return Math.abs(val);
-        }
+    height: 250
+    stacked: false
   yaxis:
-    min: -100
-    max: 100
-    tickAmount: 8
-    labels:
-      formatter: |
-        EVAL:function(val) {
-          return Math.abs(val);
-        }
+    title:
+      text: "Satellites"
+    min: 0
   legend:
     show: true
-  tooltip:
-    enabled: true
-    custom: |
-      EVAL:function({series, seriesIndex, dataPointIndex, w}) {
-        const data = w.config.series[seriesIndex].data[dataPointIndex];
-        return '<div class="arrow_box">' +
-          '<span>' + data.label + '</span><br/>' +
-          '<span>SNR: ' + (data.marker.size * 2) + ' dB-Hz</span>' +
-          '</div>';
-      }
 ```
+
+### 3a. Sky Plot (Using Picture Elements Card)
+
+For a proper sky plot, use a Picture Elements card with template sensors. First, create a template sensor for satellite positions:
+
+**configuration.yaml:**
+```yaml
+template:
+  - sensor:
+      - name: "Satellite Sky Data"
+        state: "{{ state_attr('sensor.emlid_satellite_observations', 'rover_satellites') | length }}"
+        attributes:
+          satellites: >
+            {% set sats = state_attr('sensor.emlid_satellite_observations', 'rover_satellites') %}
+            {% set ns = namespace(result=[]) %}
+            {% for sat in sats %}
+              {% set r = 90 - sat.elevation %}
+              {% set theta = sat.azimuth * 3.14159 / 180 %}
+              {% set x = 50 + (r * 0.5 * (theta | sin)) %}
+              {% set y = 50 - (r * 0.5 * (theta | cos)) %}
+              {% set ns.result = ns.result + [{
+                'id': sat.satellite_index,
+                'x': x,
+                'y': y,
+                'snr': sat.signal_to_noise_ratio
+              }] %}
+            {% endfor %}
+            {{ ns.result }}
+```
+
+Then use Picture Elements card (this is complex - markdown table is easier, see below)
 
 ### 4. Constellation Distribution
 

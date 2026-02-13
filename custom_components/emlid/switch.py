@@ -221,11 +221,11 @@ class EmlidSwitch(CoordinatorEntity[EmlidDataUpdateCoordinator], SwitchEntity):
         # Device info
         device_info = coordinator.data.get("device_info", {}).get("device", {})
         serial_number = device_info.get("serial_number", config_entry.entry_id)
-        model = device_info.get("model", "Emlid GNSS")
+        model = device_info.get("model", "GNSS Receiver")
 
         self._attr_device_info = {
             "identifiers": {(DOMAIN, serial_number)},
-            "name": f"Emlid {model}",
+            "name": model,
             "manufacturer": MANUFACTURER,
             "model": model,
             "serial_number": serial_number,
