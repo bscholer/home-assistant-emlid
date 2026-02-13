@@ -216,9 +216,11 @@ apex_config:
 
 For a proper polar sky plot showing satellite positions, you have a few options:
 
-#### Option 1: Plotly Graph Card (Best for Sky Plots)
+#### Option 1: Plotly Graph Card with Trails (Best for Sky Plots)
 
-Install **plotly-graph-card** via HACS, then use (**must use YAML mode**, visual editor not supported):
+Install **plotly-graph-card** via HACS, then use (**must use YAML mode**, visual editor not supported).
+
+This version shows satellite trails (last 20 positions) so you can see their movement across the sky!
 
 ```yaml
 type: custom:plotly-graph
@@ -241,7 +243,10 @@ layout:
 entities:
   - entity: sensor.emlid_satellite_observations
     name: GPS
-    mode: markers+text
+    mode: lines+markers+text
+    line:
+      width: 1
+      color: '#2196F3'
     marker:
       size: 12
       color: '#2196F3'
@@ -249,20 +254,60 @@ entities:
     textposition: top center
     hovertemplate: '<b>%{text}</b><br>SNR: %{customdata} dB<extra></extra>'
     theta: >
-      $fn ({ys,meta}) =>
-        meta.by_constellation.GPS.map(sat => sat.azimuth)
+      $fn ({ys,meta}) => {
+        const trails = [];
+        meta.by_constellation.GPS.forEach(sat => {
+          const trail = meta.satellite_trails[sat.satellite_index] || [];
+          if (trail.length > 0) {
+            trails.push(...trail.map(pos => pos.azimuth));
+            trails.push(null); // Gap between satellites
+          }
+        });
+        return trails;
+      }
     r: >
-      $fn ({ys,meta}) =>
-        meta.by_constellation.GPS.map(sat => 90 - sat.elevation)
+      $fn ({ys,meta}) => {
+        const trails = [];
+        meta.by_constellation.GPS.forEach(sat => {
+          const trail = meta.satellite_trails[sat.satellite_index] || [];
+          if (trail.length > 0) {
+            trails.push(...trail.map(pos => 90 - pos.elevation));
+            trails.push(null); // Gap between satellites
+          }
+        });
+        return trails;
+      }
     text: >
-      $fn ({ys,meta}) =>
-        meta.by_constellation.GPS.map(sat => sat.satellite_index)
+      $fn ({ys,meta}) => {
+        const trails = [];
+        meta.by_constellation.GPS.forEach(sat => {
+          const trail = meta.satellite_trails[sat.satellite_index] || [];
+          if (trail.length > 0) {
+            // Only label the most recent position
+            trails.push(...trail.map((pos, i) => i === trail.length - 1 ? sat.satellite_index : ''));
+            trails.push(null);
+          }
+        });
+        return trails;
+      }
     customdata: >
-      $fn ({ys,meta}) =>
-        meta.by_constellation.GPS.map(sat => sat.signal_to_noise_ratio)
+      $fn ({ys,meta}) => {
+        const trails = [];
+        meta.by_constellation.GPS.forEach(sat => {
+          const trail = meta.satellite_trails[sat.satellite_index] || [];
+          if (trail.length > 0) {
+            trails.push(...trail.map(pos => pos.snr));
+            trails.push(null);
+          }
+        });
+        return trails;
+      }
   - entity: sensor.emlid_satellite_observations
     name: Galileo
-    mode: markers+text
+    mode: lines+markers+text
+    line:
+      width: 1
+      color: '#4CAF50'
     marker:
       size: 12
       color: '#4CAF50'
@@ -270,20 +315,59 @@ entities:
     textposition: top center
     hovertemplate: '<b>%{text}</b><br>SNR: %{customdata} dB<extra></extra>'
     theta: >
-      $fn ({ys,meta}) =>
-        meta.by_constellation.Galileo.map(sat => sat.azimuth)
+      $fn ({ys,meta}) => {
+        const trails = [];
+        meta.by_constellation.Galileo.forEach(sat => {
+          const trail = meta.satellite_trails[sat.satellite_index] || [];
+          if (trail.length > 0) {
+            trails.push(...trail.map(pos => pos.azimuth));
+            trails.push(null);
+          }
+        });
+        return trails;
+      }
     r: >
-      $fn ({ys,meta}) =>
-        meta.by_constellation.Galileo.map(sat => 90 - sat.elevation)
+      $fn ({ys,meta}) => {
+        const trails = [];
+        meta.by_constellation.Galileo.forEach(sat => {
+          const trail = meta.satellite_trails[sat.satellite_index] || [];
+          if (trail.length > 0) {
+            trails.push(...trail.map(pos => 90 - pos.elevation));
+            trails.push(null);
+          }
+        });
+        return trails;
+      }
     text: >
-      $fn ({ys,meta}) =>
-        meta.by_constellation.Galileo.map(sat => sat.satellite_index)
+      $fn ({ys,meta}) => {
+        const trails = [];
+        meta.by_constellation.Galileo.forEach(sat => {
+          const trail = meta.satellite_trails[sat.satellite_index] || [];
+          if (trail.length > 0) {
+            trails.push(...trail.map((pos, i) => i === trail.length - 1 ? sat.satellite_index : ''));
+            trails.push(null);
+          }
+        });
+        return trails;
+      }
     customdata: >
-      $fn ({ys,meta}) =>
-        meta.by_constellation.Galileo.map(sat => sat.signal_to_noise_ratio)
+      $fn ({ys,meta}) => {
+        const trails = [];
+        meta.by_constellation.Galileo.forEach(sat => {
+          const trail = meta.satellite_trails[sat.satellite_index] || [];
+          if (trail.length > 0) {
+            trails.push(...trail.map(pos => pos.snr));
+            trails.push(null);
+          }
+        });
+        return trails;
+      }
   - entity: sensor.emlid_satellite_observations
     name: GLONASS
-    mode: markers+text
+    mode: lines+markers+text
+    line:
+      width: 1
+      color: '#FF9800'
     marker:
       size: 12
       color: '#FF9800'
@@ -291,20 +375,59 @@ entities:
     textposition: top center
     hovertemplate: '<b>%{text}</b><br>SNR: %{customdata} dB<extra></extra>'
     theta: >
-      $fn ({ys,meta}) =>
-        meta.by_constellation.GLONASS.map(sat => sat.azimuth)
+      $fn ({ys,meta}) => {
+        const trails = [];
+        meta.by_constellation.GLONASS.forEach(sat => {
+          const trail = meta.satellite_trails[sat.satellite_index] || [];
+          if (trail.length > 0) {
+            trails.push(...trail.map(pos => pos.azimuth));
+            trails.push(null);
+          }
+        });
+        return trails;
+      }
     r: >
-      $fn ({ys,meta}) =>
-        meta.by_constellation.GLONASS.map(sat => 90 - sat.elevation)
+      $fn ({ys,meta}) => {
+        const trails = [];
+        meta.by_constellation.GLONASS.forEach(sat => {
+          const trail = meta.satellite_trails[sat.satellite_index] || [];
+          if (trail.length > 0) {
+            trails.push(...trail.map(pos => 90 - pos.elevation));
+            trails.push(null);
+          }
+        });
+        return trails;
+      }
     text: >
-      $fn ({ys,meta}) =>
-        meta.by_constellation.GLONASS.map(sat => sat.satellite_index)
+      $fn ({ys,meta}) => {
+        const trails = [];
+        meta.by_constellation.GLONASS.forEach(sat => {
+          const trail = meta.satellite_trails[sat.satellite_index] || [];
+          if (trail.length > 0) {
+            trails.push(...trail.map((pos, i) => i === trail.length - 1 ? sat.satellite_index : ''));
+            trails.push(null);
+          }
+        });
+        return trails;
+      }
     customdata: >
-      $fn ({ys,meta}) =>
-        meta.by_constellation.GLONASS.map(sat => sat.signal_to_noise_ratio)
+      $fn ({ys,meta}) => {
+        const trails = [];
+        meta.by_constellation.GLONASS.forEach(sat => {
+          const trail = meta.satellite_trails[sat.satellite_index] || [];
+          if (trail.length > 0) {
+            trails.push(...trail.map(pos => pos.snr));
+            trails.push(null);
+          }
+        });
+        return trails;
+      }
   - entity: sensor.emlid_satellite_observations
     name: BeiDou
-    mode: markers+text
+    mode: lines+markers+text
+    line:
+      width: 1
+      color: '#F44336'
     marker:
       size: 12
       color: '#F44336'
@@ -312,20 +435,59 @@ entities:
     textposition: top center
     hovertemplate: '<b>%{text}</b><br>SNR: %{customdata} dB<extra></extra>'
     theta: >
-      $fn ({ys,meta}) =>
-        meta.by_constellation.BeiDou.map(sat => sat.azimuth)
+      $fn ({ys,meta}) => {
+        const trails = [];
+        meta.by_constellation.BeiDou.forEach(sat => {
+          const trail = meta.satellite_trails[sat.satellite_index] || [];
+          if (trail.length > 0) {
+            trails.push(...trail.map(pos => pos.azimuth));
+            trails.push(null);
+          }
+        });
+        return trails;
+      }
     r: >
-      $fn ({ys,meta}) =>
-        meta.by_constellation.BeiDou.map(sat => 90 - sat.elevation)
+      $fn ({ys,meta}) => {
+        const trails = [];
+        meta.by_constellation.BeiDou.forEach(sat => {
+          const trail = meta.satellite_trails[sat.satellite_index] || [];
+          if (trail.length > 0) {
+            trails.push(...trail.map(pos => 90 - pos.elevation));
+            trails.push(null);
+          }
+        });
+        return trails;
+      }
     text: >
-      $fn ({ys,meta}) =>
-        meta.by_constellation.BeiDou.map(sat => sat.satellite_index)
+      $fn ({ys,meta}) => {
+        const trails = [];
+        meta.by_constellation.BeiDou.forEach(sat => {
+          const trail = meta.satellite_trails[sat.satellite_index] || [];
+          if (trail.length > 0) {
+            trails.push(...trail.map((pos, i) => i === trail.length - 1 ? sat.satellite_index : ''));
+            trails.push(null);
+          }
+        });
+        return trails;
+      }
     customdata: >
-      $fn ({ys,meta}) =>
-        meta.by_constellation.BeiDou.map(sat => sat.signal_to_noise_ratio)
+      $fn ({ys,meta}) => {
+        const trails = [];
+        meta.by_constellation.BeiDou.forEach(sat => {
+          const trail = meta.satellite_trails[sat.satellite_index] || [];
+          if (trail.length > 0) {
+            trails.push(...trail.map(pos => pos.snr));
+            trails.push(null);
+          }
+        });
+        return trails;
+      }
   - entity: sensor.emlid_satellite_observations
     name: QZSS
-    mode: markers+text
+    mode: lines+markers+text
+    line:
+      width: 1
+      color: '#9C27B0'
     marker:
       size: 12
       color: '#9C27B0'
@@ -333,20 +495,59 @@ entities:
     textposition: top center
     hovertemplate: '<b>%{text}</b><br>SNR: %{customdata} dB<extra></extra>'
     theta: >
-      $fn ({ys,meta}) =>
-        meta.by_constellation.QZSS.map(sat => sat.azimuth)
+      $fn ({ys,meta}) => {
+        const trails = [];
+        meta.by_constellation.QZSS.forEach(sat => {
+          const trail = meta.satellite_trails[sat.satellite_index] || [];
+          if (trail.length > 0) {
+            trails.push(...trail.map(pos => pos.azimuth));
+            trails.push(null);
+          }
+        });
+        return trails;
+      }
     r: >
-      $fn ({ys,meta}) =>
-        meta.by_constellation.QZSS.map(sat => 90 - sat.elevation)
+      $fn ({ys,meta}) => {
+        const trails = [];
+        meta.by_constellation.QZSS.forEach(sat => {
+          const trail = meta.satellite_trails[sat.satellite_index] || [];
+          if (trail.length > 0) {
+            trails.push(...trail.map(pos => 90 - pos.elevation));
+            trails.push(null);
+          }
+        });
+        return trails;
+      }
     text: >
-      $fn ({ys,meta}) =>
-        meta.by_constellation.QZSS.map(sat => sat.satellite_index)
+      $fn ({ys,meta}) => {
+        const trails = [];
+        meta.by_constellation.QZSS.forEach(sat => {
+          const trail = meta.satellite_trails[sat.satellite_index] || [];
+          if (trail.length > 0) {
+            trails.push(...trail.map((pos, i) => i === trail.length - 1 ? sat.satellite_index : ''));
+            trails.push(null);
+          }
+        });
+        return trails;
+      }
     customdata: >
-      $fn ({ys,meta}) =>
-        meta.by_constellation.QZSS.map(sat => sat.signal_to_noise_ratio)
+      $fn ({ys,meta}) => {
+        const trails = [];
+        meta.by_constellation.QZSS.forEach(sat => {
+          const trail = meta.satellite_trails[sat.satellite_index] || [];
+          if (trail.length > 0) {
+            trails.push(...trail.map(pos => pos.snr));
+            trails.push(null);
+          }
+        });
+        return trails;
+      }
   - entity: sensor.emlid_satellite_observations
     name: SBAS
-    mode: markers+text
+    mode: lines+markers+text
+    line:
+      width: 1
+      color: '#795548'
     marker:
       size: 12
       color: '#795548'
@@ -354,17 +555,53 @@ entities:
     textposition: top center
     hovertemplate: '<b>%{text}</b><br>SNR: %{customdata} dB<extra></extra>'
     theta: >
-      $fn ({ys,meta}) =>
-        meta.by_constellation.SBAS.map(sat => sat.azimuth)
+      $fn ({ys,meta}) => {
+        const trails = [];
+        meta.by_constellation.SBAS.forEach(sat => {
+          const trail = meta.satellite_trails[sat.satellite_index] || [];
+          if (trail.length > 0) {
+            trails.push(...trail.map(pos => pos.azimuth));
+            trails.push(null);
+          }
+        });
+        return trails;
+      }
     r: >
-      $fn ({ys,meta}) =>
-        meta.by_constellation.SBAS.map(sat => 90 - sat.elevation)
+      $fn ({ys,meta}) => {
+        const trails = [];
+        meta.by_constellation.SBAS.forEach(sat => {
+          const trail = meta.satellite_trails[sat.satellite_index] || [];
+          if (trail.length > 0) {
+            trails.push(...trail.map(pos => 90 - pos.elevation));
+            trails.push(null);
+          }
+        });
+        return trails;
+      }
     text: >
-      $fn ({ys,meta}) =>
-        meta.by_constellation.SBAS.map(sat => sat.satellite_index)
+      $fn ({ys,meta}) => {
+        const trails = [];
+        meta.by_constellation.SBAS.forEach(sat => {
+          const trail = meta.satellite_trails[sat.satellite_index] || [];
+          if (trail.length > 0) {
+            trails.push(...trail.map((pos, i) => i === trail.length - 1 ? sat.satellite_index : ''));
+            trails.push(null);
+          }
+        });
+        return trails;
+      }
     customdata: >
-      $fn ({ys,meta}) =>
-        meta.by_constellation.SBAS.map(sat => sat.signal_to_noise_ratio)
+      $fn ({ys,meta}) => {
+        const trails = [];
+        meta.by_constellation.SBAS.forEach(sat => {
+          const trail = meta.satellite_trails[sat.satellite_index] || [];
+          if (trail.length > 0) {
+            trails.push(...trail.map(pos => pos.snr));
+            trails.push(null);
+          }
+        });
+        return trails;
+      }
 ```
 
 **Note:** The visual editor warnings are expected - Plotly uses advanced features that require YAML mode. Just ignore them!

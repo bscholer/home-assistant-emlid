@@ -103,6 +103,10 @@ class EmlidDataUpdateCoordinator(DataUpdateCoordinator[EmlidCoordinatorData]):
         # Current data (updated by WebSocket)
         self._ws_data: EmlidCoordinatorData = {}
 
+        # Satellite position history for trails (last 20 positions per satellite)
+        self._satellite_trails: dict[str, list[dict[str, Any]]] = {}
+        self._max_trail_length = 20
+
         # Register WebSocket callbacks
         self.ws_client.on("navigation", self._handle_navigation)
         self.ws_client.on("battery_status", self._handle_battery)
@@ -243,6 +247,35 @@ class EmlidDataUpdateCoordinator(DataUpdateCoordinator[EmlidCoordinatorData]):
                 constellations["SBAS"].append(sat)
 
         observations["by_constellation"] = constellations
+
+        # Update satellite trails (position history for sky plot)
+        for sat in observations["rover_satellites"]:
+            sat_id = sat.get("satellite_index", "")
+            if sat_id:
+                # Initialize trail if needed
+                if sat_id not in self._satellite_trails:
+                    self._satellite_trails[sat_id] = []
+
+                # Add current position to trail
+                self._satellite_trails[sat_id].append({
+                    "azimuth": sat.get("azimuth", 0),
+                    "elevation": sat.get("elevation", 0),
+                    "snr": sat.get("signal_to_noise_ratio", 0),
+                    "timestamp": datetime.now().isoformat(),
+                })
+
+                # Keep only last N positions
+                if len(self._satellite_trails[sat_id]) > self._max_trail_length:
+                    self._satellite_trails[sat_id] = self._satellite_trails[sat_id][-self._max_trail_length:]
+
+        # Clean up trails for satellites no longer visible
+        current_sat_ids = {sat.get("satellite_index") for sat in observations["rover_satellites"]}
+        trails_to_remove = [sat_id for sat_id in self._satellite_trails if sat_id not in current_sat_ids]
+        for sat_id in trails_to_remove:
+            del self._satellite_trails[sat_id]
+
+        # Add trails to observations
+        observations["satellite_trails"] = self._satellite_trails
 
         self._ws_data["satellite_observations"] = observations
         self.async_set_updated_data(self._merge_data())

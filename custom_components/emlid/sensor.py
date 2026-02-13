@@ -352,6 +352,7 @@ class EmlidSensor(CoordinatorEntity[EmlidDataUpdateCoordinator], SensorEntity):
                 "rover_satellites": obs_data.get("rover_satellites", []),
                 "base_satellites": obs_data.get("base_satellites", []),
                 "by_constellation": obs_data.get("by_constellation", {}),
+                "satellite_trails": obs_data.get("satellite_trails", {}),
                 "timestamp": obs_data.get("timestamp"),
             }
         return None
