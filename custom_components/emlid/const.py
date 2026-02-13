@@ -7,7 +7,14 @@ from typing import Final
 from homeassistant.const import Platform
 
 DOMAIN: Final = "emlid"
-PLATFORMS = [Platform.SENSOR, Platform.BINARY_SENSOR, Platform.DEVICE_TRACKER]
+PLATFORMS = [
+    Platform.SENSOR,
+    Platform.BINARY_SENSOR,
+    Platform.DEVICE_TRACKER,
+    Platform.SWITCH,
+    Platform.NUMBER,
+    Platform.SELECT,
+]
 
 # Configuration
 CONF_HOST: Final = "host"

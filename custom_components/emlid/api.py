@@ -38,6 +38,17 @@ class EmlidAPIClient:
             _LOGGER.error("Error fetching %s: %s", endpoint, err)
             raise EmlidAPIError(f"Failed to fetch {endpoint}") from err
 
+    async def _post(self, endpoint: str, data: dict[str, Any]) -> dict[str, Any]:
+        """Make a POST request to the API."""
+        url = f"{self.base_url}{endpoint}"
+        try:
+            async with self.session.post(url, json=data, timeout=10) as response:
+                response.raise_for_status()
+                return await response.json()
+        except Exception as err:
+            _LOGGER.error("Error posting to %s: %s", endpoint, err)
+            raise EmlidAPIError(f"Failed to post to {endpoint}") from err
+
     async def get_info(self) -> dict[str, Any]:
         """Get device information."""
         return await self._get("/info")
@@ -65,6 +76,52 @@ class EmlidAPIClient:
     async def get_lora_rssi(self) -> dict[str, Any]:
         """Get LoRa RSSI."""
         return await self._get("/lora/rssi")
+
+    async def get_device_config(self) -> dict[str, Any]:
+        """Get device configuration."""
+        config = await self.get_configuration()
+        return config.get("device", {})
+
+    async def get_positioning_settings(self) -> dict[str, Any]:
+        """Get positioning settings."""
+        config = await self.get_configuration()
+        return config.get("positioning_settings", {})
+
+    async def set_device_config(self, **kwargs: Any) -> dict[str, Any]:
+        """Update device configuration (night_mode, antenna_height, etc.).
+
+        Uses read-modify-write pattern to preserve existing settings.
+        """
+        # Get current configuration
+        current = await self.get_device_config()
+        # Merge with new values
+        updated = {**current, **kwargs}
+        # Post back
+        return await self._post("/configuration/device", updated)
+
+    async def set_logging_state(self, started: bool) -> dict[str, Any]:
+        """Start or stop data logging."""
+        return await self._post("/configuration/logging/logs", {"started": started})
+
+    async def set_positioning_settings(self, **kwargs: Any) -> dict[str, Any]:
+        """Update positioning settings (GNSS systems, update rate, etc.).
+
+        Uses read-modify-write pattern to preserve existing settings.
+        """
+        # Get current settings
+        current = await self.get_positioning_settings()
+
+        # Handle nested updates (e.g., gnss_settings.positioning_systems.gps)
+        updated = current.copy()
+        for key, value in kwargs.items():
+            if isinstance(value, dict) and key in updated and isinstance(updated[key], dict):
+                # Merge nested dicts
+                updated[key] = {**updated[key], **value}
+            else:
+                updated[key] = value
+
+        # Post back
+        return await self._post("/configuration/positioning_settings", updated)
 
 
 class EmlidWebSocketClient:
